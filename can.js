@@ -174,7 +174,7 @@ function copyToClipboard() {
                 }
             });
 
-            text += `\n${name} - ${fixedItemsOutput}${otherItemsOutput}Total -> ${total}\n`;
+            text += `\n${name} - \n${fixedItemsOutput}${otherItemsOutput}Total -> ${total}\n`;
         }
     });
 
