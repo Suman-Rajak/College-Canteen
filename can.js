@@ -227,6 +227,44 @@ function calculateGeneralTotal() {
     grandTotalElement.innerText = total; // Update the displayed grand total
 }
 
+// Function to calculate and display the final bill
+function calculateFinalBill() {
+    const itemTotals = {};
+
+    // Loop through each friend to gather item quantities
+    const friends = document.querySelectorAll('.friend');
+    friends.forEach(friend => {
+        const quantities = friend.querySelectorAll('.item-quantity');
+        
+        quantities.forEach(quantityInput => {
+            const itemName = quantityInput.closest('.food-item').querySelector('label').innerText;
+            const quantity = parseInt(quantityInput.value) || 0;
+
+            // Aggregate quantity
+            if (itemTotals[itemName]) {
+                itemTotals[itemName] += quantity;
+            } else {
+                itemTotals[itemName] = quantity;
+            }
+        });
+    });
+
+    // Display final bill
+    const finalBillDiv = document.getElementById('final-bill');
+    finalBillDiv.innerHTML = ''; // Clear previous contents
+
+    for (const [item, totalQuantity] of Object.entries(itemTotals)) {
+        if (totalQuantity > 0) {
+            finalBillDiv.innerHTML += `<div>${totalQuantity} x ${item}</div>`;
+        }
+    }
+}
+
+// Call calculateFinalBill when needed
+// For example, add this function call to update after every change in quantities
+document.querySelectorAll('.item-quantity').forEach(input => {
+    input.addEventListener('change', calculateFinalBill);
+});
 
 
 
