@@ -405,25 +405,3 @@ function generateFriends() {
 
 // Call the function to generate friends on page load
 window.onload = generateFriends;
-
-
-// send to whatsapp
-function sendToWhatsApp() {
-    if (!text) {
-        alert("No bill generated to send.");
-        return;
-    }
-
-    // Encode the message to be URL-friendly
-    const encodedMessage = encodeURIComponent(text);
-
-    // WhatsApp API URL
-    const whatsappURL = `https://wa.me/?text=${encodedMessage}`;
-
-<<<<<<< HEAD
-    // Open WhatsApp with the message
-    window.open(whatsappURL, '_blank');
-}
-=======
-
->>>>>>> 1f28003ef30e473eac85c8bf0f79b8aef86462ab
