@@ -7,8 +7,6 @@ const fixedItems = [
     { name: "Roti", price: 5 },
     { name: "Aalu Dam", price: 10 },
     { name: "Ghoogni", price: 15 },
-    { name: "Idly", price: 30 },
-    // Add more fixed items here if needed
 ];
 
 // Function to create HTML for fixed items
@@ -37,19 +35,10 @@ function calculateTotal(element) {
     const otherItemPrices = friendDiv.querySelector('.other-item-prices').value.split(',').map(price => parseFloat(price.trim()));
     const otherItemQuantities = friendDiv.querySelector('.other-item-quantities').value.split(',').map(quantity => parseInt(quantity.trim()));
 
-    let otherTotalText = '';
-
-    // Calculate total from other items
     otherItemNames.forEach((name, index) => {
         const price = otherItemPrices[index] || 0;
         const quantity = otherItemQuantities[index] || 0;
-        const itemTotal = price * quantity;
-
-        if (itemTotal > 0) {
-            otherTotalText += `${name} (${price}) X ${quantity} -> ${itemTotal}\n`;
-        }
-
-        total += itemTotal; // Add to total
+        total += price * quantity; // Add to total
     });
 
     // Update friend total display
@@ -81,7 +70,7 @@ function copyToClipboard() {
     const generalItemQuantities = document.getElementById('general-item-quantities').value.split(',');
     
     let generalItemsOutput = '';
-    let generalTotal = 0; // Initialize general total for clipboard
+    let generalTotal = 0;
 
     generalItemNames.forEach((itemName, index) => {
         const price = parseFloat(generalItemPrices[index]) || 0;
@@ -133,8 +122,7 @@ function copyToClipboard() {
     text += `\nGeneral Items:\n${generalItemsOutput}Total for General Items -> ${generalTotal}\n\nGRAND TOTAL -> ${grandTotal}`;
     const paidBy = document.getElementById('paid-by').value;
     const paymentMethod = document.getElementById('payment-method').value;
-    text += `\nPaid By: ${paidBy}`;
-    text += `\nPayment Method: ${paymentMethod}`;
+    text += `\nPaid By: ${paidBy}\nPayment Method: ${paymentMethod}`;
 
     navigator.clipboard.writeText(text).then(() => {
         alert('Copied to clipboard!');
@@ -143,15 +131,230 @@ function copyToClipboard() {
     });
 }
 
+// Function to generate the friend sections dynamically
+// function generateFriends() {
+//     const friendsContainer = document.getElementById('friends-container');
+    
+//     // Array of friend names
+//     const friendNames = [
+//         "Aakif",
+//         "Aditya",
+//         "Aman",
+//         "Nazlee",
+//         "Rishabh",
+//         "Sulagna",
+//         "Suman"
+//     ];
+    
+//     // Loop through the friend names array
+//     friendNames.forEach(name => {
+//         const friendHTML = `
+//             <div class="friend">
+//                 <h3 class="friend-name">${name}</h3>
+//                 ${createFixedItemsHTML()}
+                
+//                 <div>
+//                     <label for="other-item-names">Other Item Names:</label>
+//                     <input type="text" class="other-item-names" placeholder="e.g., Pizza, Curd" oninput="calculateTotal(this)">
+//                 </div>
+//                 <div>
+//                     <label for="other-item-prices">Other Item Prices:</label>
+//                     <input type="text" class="other-item-prices" placeholder="e.g., 80, 20" oninput="calculateTotal(this)">
+//                 </div>
+//                 <div>
+//                     <label for="other-item-quantities">Other Item Quantities:</label>
+//                     <input type="text" class="other-item-quantities" placeholder="e.g., 1, 2" oninput="calculateTotal(this)">
+//                 </div>
+//                 <div class="friend-total">0</div>
+//             </div>
+//         `;
+//         friendsContainer.innerHTML += friendHTML; // Append to the container
+//     });
+// }
 
+// // Call the function to generate friends on page load
+// window.onload = generateFriends;
 
+function calculateGeneralTotal() {
+    const generalItemNames = document.getElementById('general-item-names').value.split(',');
+    const generalItemPrices = document.getElementById('general-item-prices').value.split(',');
+    const generalItemQuantities = document.getElementById('general-item-quantities').value.split(',');
 
-// Function to export to Google Sheets (placeholder)
-function exportToGoogleSheets() {
-    // Implement Google Sheets export functionality here
+    let generalTotal = 0;
+
+    generalItemNames.forEach((itemName, index) => {
+        const price = parseFloat(generalItemPrices[index]) || 0;
+        const quantity = parseInt(generalItemQuantities[index]) || 0;
+        generalTotal += price * quantity;
+    });
+
+    // Update the total for general items in the UI
+    document.getElementById('general-total').innerText = generalTotal;
+
+    // Update grand total in the UI
+    const grandTotalElement = document.getElementById('grand-total');
+    const individualTotals = document.querySelectorAll('.friend-total');
+    let total = generalTotal; // Start total with general total
+
+    individualTotals.forEach(friendTotal => {
+        total += parseFloat(friendTotal.innerText) || 0;
+    });
+
+    grandTotalElement.innerText = total; // Update the displayed grand total
 }
 
-// Function to generate the friend sections dynamically
+// Export to Google Sheets
+async function exportToGoogleSheets() {
+
+    const url = 'https://script.google.com/macros/s/AKfycbxIywsEjszxRwBJI8IIbeXAf88VQ8YEZZheLkbL1gpXahFikBrE-HMiVItbp68D-MvG/exec'; // Replace with your script URL
+    
+    const paidByInput = document.getElementById('paid-by');
+    const paymentMethodSelect = document.getElementById('payment-method');
+    const generalTotalElement = document.getElementById('general-total');
+
+    // Check if the elements are found
+    if (!paidByInput || !paymentMethodSelect || !generalTotalElement) {
+        console.error('One or more elements not found');
+        return; // Exit the function if any element is not found
+    }
+
+    const friendTotals = {};
+    const friends = document.querySelectorAll('.friend');
+
+    // Loop through each friend to get their totals
+    friends.forEach(friend => {
+        const name = friend.querySelector('.friend-name').innerText;
+        const total = friend.querySelector('.friend-total').innerText;
+        friendTotals[name] = total; // Store total in an object with friend's name as the key
+    });
+
+    const data = {
+        date: new Date().toLocaleDateString(), // Current date
+        totals: friendTotals, // Use the friendTotals object
+        generalTotal: generalTotalElement.innerText,
+        paidBy: paidByInput.value,
+        paymentMethod: paymentMethodSelect.value
+    };
+
+    try {
+        const response = await fetch(url, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(data)
+        });
+
+        if (!response.ok) {
+            throw new Error('Network response was not ok');
+        }
+
+        const result = await response.json();
+        console.log('Exported successfully', result);
+        alert('Data exported successfully!');
+    } catch (error) {
+        console.error('Error exporting data:', error);
+        alert('Error exporting data');
+    }
+}
+
+// Function to calculate total for each friend and update final bill
+function calculateTotal(element) {
+    const friendDiv = element.closest('.friend');
+    const quantities = friendDiv.querySelectorAll('.item-quantity');
+    let total = 0;
+
+    // Calculate total from fixed items
+    quantities.forEach(q => {
+        const price = parseFloat(q.dataset.price);
+        const quantity = parseInt(q.value) || 0;
+        total += price * quantity;
+    });
+
+    // Process other items
+    const otherItemNames = friendDiv.querySelector('.other-item-names').value.split(',').map(item => item.trim());
+    const otherItemPrices = friendDiv.querySelector('.other-item-prices').value.split(',').map(price => parseFloat(price.trim()) || 0);
+    const otherItemQuantities = friendDiv.querySelector('.other-item-quantities').value.split(',').map(quantity => parseInt(quantity.trim()) || 0);
+
+    otherItemNames.forEach((name, index) => {
+        const price = otherItemPrices[index];
+        const quantity = otherItemQuantities[index];
+        total += price * quantity; // Add to total
+    });
+
+    // Update friend total display
+    friendDiv.querySelector('.friend-total').innerText = total;
+
+    // Update grand total
+    updateGrandTotal();
+}
+
+// Function to calculate and display the final bill, including general items
+function calculateFinalBill() {
+    const itemTotals = {}; // Object to store total quantities for each item
+
+    // Loop through each friend to gather item quantities, including other items
+    const friends = document.querySelectorAll('.friend');
+    friends.forEach(friend => {
+        const quantities = friend.querySelectorAll('.item-quantity');
+
+        quantities.forEach(quantityInput => {
+            const itemName = quantityInput.closest('.food-item').querySelector('label').innerText;
+            const quantity = parseInt(quantityInput.value) || 0;
+
+            // Aggregate quantity
+            itemTotals[itemName] = (itemTotals[itemName] || 0) + quantity;
+        });
+
+        // Process other items
+        const otherItemNames = friend.querySelector('.other-item-names').value.split(',').map(item => item.trim());
+        const otherItemPrices = friend.querySelector('.other-item-prices').value.split(',').map(price => parseFloat(price.trim()) || 0);
+        const otherItemQuantities = friend.querySelector('.other-item-quantities').value.split(',').map(quantity => parseInt(quantity.trim()) || 0);
+
+        otherItemNames.forEach((name, index) => {
+            const quantity = otherItemQuantities[index];
+            itemTotals[name] = (itemTotals[name] || 0) + quantity;
+        });
+    });
+
+    // Add general items
+    const generalItemNames = document.getElementById('general-item-names').value.split(',').map(name => name.trim());
+    const generalItemPrices = document.getElementById('general-item-prices').value.split(',').map(price => parseFloat(price.trim()) || 0);
+    const generalItemQuantities = document.getElementById('general-item-quantities').value.split(',').map(quantity => parseInt(quantity.trim()) || 0);
+
+    generalItemNames.forEach((name, index) => {
+        const quantity = generalItemQuantities[index];
+        itemTotals[name] = (itemTotals[name] || 0) + quantity;
+    });
+
+    // Display final bill
+    const finalBillDiv = document.getElementById('final-bill');
+    finalBillDiv.innerHTML = ''; // Clear previous contents
+
+    // Populate the final bill with item totals
+    let hasItems = false;
+    for (const [item, totalQuantity] of Object.entries(itemTotals)) {
+        if (totalQuantity > 0) {
+            finalBillDiv.innerHTML += `<div>${totalQuantity} x ${item}</div>`;
+            hasItems = true;
+        }
+    }
+
+    // Display a message if no items are ordered
+    if (!hasItems) {
+        finalBillDiv.innerHTML = "No items ordered yet.";
+    }
+}
+
+// Call calculateFinalBill when any quantity input changes
+document.addEventListener("DOMContentLoaded", () => {
+    document.querySelectorAll('.item-quantity, .other-item-names, .other-item-prices, .other-item-quantities, #general-item-names, #general-item-prices, #general-item-quantities').forEach(input => {
+        input.addEventListener('input', calculateFinalBill);
+    });
+});
+
+
+// Function to generate the friend sections dynamically and add event listeners
 function generateFriends() {
     const friendsContainer = document.getElementById('friends-container');
     
@@ -173,61 +376,54 @@ function generateFriends() {
                 <h3 class="friend-name">${name}</h3>
                 ${createFixedItemsHTML()}
                 
-                
                 <div>
                     <label for="other-item-names">Other Item Names:</label>
-                    <input type="text" class="other-item-names" placeholder="e.g., Pizza, Curd" oninput="calculateTotal(this)">
+                    <input type="text" class="other-item-names" placeholder="e.g., Pizza, Curd">
                 </div>
                 <div>
                     <label for="other-item-prices">Other Item Prices:</label>
-                    <input type="text" class="other-item-prices" placeholder="e.g., 80, 20" oninput="calculateTotal(this)">
+                    <input type="text" class="other-item-prices" placeholder="e.g., 80, 20">
                 </div>
                 <div>
                     <label for="other-item-quantities">Other Item Quantities:</label>
-                    <input type="text" class="other-item-quantities" placeholder="e.g., 1, 2" oninput="calculateTotal(this)">
+                    <input type="text" class="other-item-quantities" placeholder="e.g., 1, 2">
                 </div>
                 <div class="friend-total">0</div>
             </div>
         `;
         friendsContainer.innerHTML += friendHTML; // Append to the container
     });
-}
 
+    // Add event listeners for each item quantity input to recalculate totals
+    document.querySelectorAll('.item-quantity, .other-item-names, .other-item-prices, .other-item-quantities').forEach(input => {
+        input.addEventListener('input', () => {
+            calculateTotal(input);  // Update individual totals
+            calculateFinalBill();   // Update final bill
+        });
+    });
+}
 
 // Call the function to generate friends on page load
 window.onload = generateFriends;
 
 
-function calculateGeneralTotal() {
-    const generalItemNames = document.getElementById('general-item-names').value.split(',');
-    const generalItemPrices = document.getElementById('general-item-prices').value.split(',');
-    const generalItemQuantities = document.getElementById('general-item-quantities').value.split(',');
+// send to whatsapp
+function sendToWhatsApp() {
+    if (!text) {
+        alert("No bill generated to send.");
+        return;
+    }
 
-    let generalTotal = 0;
+    // Encode the message to be URL-friendly
+    const encodedMessage = encodeURIComponent(text);
 
-    generalItemNames.forEach((itemName, index) => {
-        const price = parseFloat(generalItemPrices[index]) || 0;
-        const quantity = parseInt(generalItemQuantities[index]) || 0;
-        generalTotal += price * quantity;
-    });
+    // WhatsApp API URL
+    const whatsappURL = `https://wa.me/?text=${encodedMessage}`;
 
-    // Update the total for general items in the UI
-    const generalTotalElement = document.getElementById('general-total');
-    generalTotalElement.innerText = generalTotal; // Display general total
-
-    // Update grand total in the UI
-    const grandTotalElement = document.getElementById('grand-total');
-    const individualTotals = document.querySelectorAll('.friend-total');
-    let total = generalTotal; // Start total with general total
-
-    individualTotals.forEach(friendTotal => {
-        total += parseFloat(friendTotal.innerText) || 0;
-    });
-
-    grandTotalElement.innerText = total; // Update the displayed grand total
+<<<<<<< HEAD
+    // Open WhatsApp with the message
+    window.open(whatsappURL, '_blank');
 }
+=======
 
-
-
-
-
+>>>>>>> 1f28003ef30e473eac85c8bf0f79b8aef86462ab

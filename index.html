@@ -29,6 +29,10 @@
         </div>
     </div>
     
+    <div class="final-bill-section">
+        <h3>Final Bill</h3>
+        <div id="final-bill">No items ordered yet.</div>
+    </div>     
     
 
     <div class="total-section">
@@ -47,11 +51,14 @@
             <option value="Cash">Cash</option>
         </select>
     </div>
-
     <div class="button-group">
         <button class="copy" onclick="copyToClipboard()">Copy to Clipboard</button>
         <button class="export" onclick="exportToGoogleSheets()">Export to Google Sheets</button>
+        <button onclick="sendToWhatsApp()">Send to WhatsApp</button>
     </div>
+    
     <script src="can.js"></script>
+    <!-- Google Sheets -->
+    <script src="https://apis.google.com/js/api.js"></script>
 </body>
 </html>
