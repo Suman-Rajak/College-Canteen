@@ -61,9 +61,69 @@ function updateGrandTotal() {
 }
 
 
-// Function to calculate and display the final bill, including general items
+// // Function to calculate and display the final bill, including general items
+// function calculateFinalBill() {
+//     const itemTotals = {}; // Object to store total quantities for each item
+
+//     // Loop through each friend to gather item quantities, including other items
+//     const friends = document.querySelectorAll('.friend');
+//     friends.forEach(friend => {
+//         const quantities = friend.querySelectorAll('.item-quantity');
+
+//         quantities.forEach(quantityInput => {
+//             const itemName = quantityInput.closest('.food-item').querySelector('label').innerText;
+//             const quantity = parseInt(quantityInput.value) || 0;
+
+//             // Aggregate quantity
+//             itemTotals[itemName] = (itemTotals[itemName] || 0) + quantity;
+//         });
+
+//         // Process other items
+//         const otherItemNames = friend.querySelector('.other-item-names').value.split(',').map(item => item.trim());
+//         const otherItemPrices = friend.querySelector('.other-item-prices').value.split(',').map(price => parseFloat(price.trim()) || 0);
+//         const otherItemQuantities = friend.querySelector('.other-item-quantities').value.split(',').map(quantity => parseInt(quantity.trim()) || 0);
+
+//         otherItemNames.forEach((name, index) => {
+//             const quantity = otherItemQuantities[index];
+//             itemTotals[name] = (itemTotals[name] || 0) + quantity;
+//         });
+//     });
+
+//     // Add general items
+//     const generalItemNames = document.getElementById('general-item-names').value.split(',').map(name => name.trim());
+//     const generalItemPrices = document.getElementById('general-item-prices').value.split(',').map(price => parseFloat(price.trim()) || 0);
+//     const generalItemQuantities = document.getElementById('general-item-quantities').value.split(',').map(quantity => parseInt(quantity.trim()) || 0);
+
+//     generalItemNames.forEach((name, index) => {
+//         const quantity = generalItemQuantities[index];
+//         itemTotals[name] = (itemTotals[name] || 0) + quantity;
+//     });
+
+//     // Display final bill
+//     const finalBillDiv = document.getElementById('final-bill');
+//     finalBillDiv.innerHTML = ''; // Clear previous contents
+
+//     // Populate the final bill with item totals
+//     let hasItems = false;
+//     for (const [item, totalQuantity] of Object.entries(itemTotals)) {
+//         if (totalQuantity > 0) {
+//             finalBillDiv.innerHTML += `<div>${totalQuantity} x ${item}</div>`;
+//             hasItems = true;
+//         }
+//     }
+
+//     // Display a message if no items are ordered
+//     if (!hasItems) {
+//         finalBillDiv.innerHTML = "No items ordered yet.";
+//     }
+//     finbill = finalBillDiv.innerText;
+// }
+
+
+// Function to calculate and display the final itemized bill, including general items
 function calculateFinalBill() {
     const itemTotals = {}; // Object to store total quantities for each item
+    let friendTotal = 0;   // Tracks total for friend-specific and other items
 
     // Loop through each friend to gather item quantities, including other items
     const friends = document.querySelectorAll('.friend');
@@ -73,37 +133,43 @@ function calculateFinalBill() {
         quantities.forEach(quantityInput => {
             const itemName = quantityInput.closest('.food-item').querySelector('label').innerText;
             const quantity = parseInt(quantityInput.value) || 0;
+            const price = parseFloat(quantityInput.dataset.price); // Get price from dataset
 
-            // Aggregate quantity
+            // Aggregate quantity for itemized display and update friendTotal
             itemTotals[itemName] = (itemTotals[itemName] || 0) + quantity;
+            friendTotal += quantity * price;
         });
 
-        // Process other items
+        // Process other items for each friend
         const otherItemNames = friend.querySelector('.other-item-names').value.split(',').map(item => item.trim());
         const otherItemPrices = friend.querySelector('.other-item-prices').value.split(',').map(price => parseFloat(price.trim()) || 0);
         const otherItemQuantities = friend.querySelector('.other-item-quantities').value.split(',').map(quantity => parseInt(quantity.trim()) || 0);
 
         otherItemNames.forEach((name, index) => {
             const quantity = otherItemQuantities[index];
+            const price = otherItemPrices[index];
             itemTotals[name] = (itemTotals[name] || 0) + quantity;
+            friendTotal += quantity * price; // Add other items to friendTotal
         });
     });
 
-    // Add general items
+    // Calculate general items total once
+    let generalTotal = 0;
     const generalItemNames = document.getElementById('general-item-names').value.split(',').map(name => name.trim());
     const generalItemPrices = document.getElementById('general-item-prices').value.split(',').map(price => parseFloat(price.trim()) || 0);
     const generalItemQuantities = document.getElementById('general-item-quantities').value.split(',').map(quantity => parseInt(quantity.trim()) || 0);
 
     generalItemNames.forEach((name, index) => {
         const quantity = generalItemQuantities[index];
+        const price = generalItemPrices[index];
         itemTotals[name] = (itemTotals[name] || 0) + quantity;
+        generalTotal += quantity * price; // Calculate general items total once
     });
 
-    // Display final bill
+    // Display itemized breakdown in the final-bill div
     const finalBillDiv = document.getElementById('final-bill');
     finalBillDiv.innerHTML = ''; // Clear previous contents
 
-    // Populate the final bill with item totals
     let hasItems = false;
     for (const [item, totalQuantity] of Object.entries(itemTotals)) {
         if (totalQuantity > 0) {
@@ -116,9 +182,16 @@ function calculateFinalBill() {
     if (!hasItems) {
         finalBillDiv.innerHTML = "No items ordered yet.";
     }
+
+    // Calculate grand total by combining friendTotal and generalTotal
+    const grandTotal = friendTotal + generalTotal;
+
+    // Display the grand total in its designated div
+    document.getElementById('grand-total').innerText = `${grandTotal}`;
+
+    // Save the itemized bill text for sharing
     finbill = finalBillDiv.innerText;
 }
-
 
 function copyToClipboard() {
     let text = '';
