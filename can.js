@@ -195,6 +195,9 @@ function calculateFinalBill() {
 
 function copyToClipboard() {
     let text = '';
+    const currentDate = new Date();
+    const formattedDate = currentDate.toLocaleDateString('en-GB');
+    text+=formattedDate+"\n";
     const friends = document.querySelectorAll('.friend');
 
     // Calculate general items
